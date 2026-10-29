@@ -1,26 +1,36 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+body {
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+@layer components {
+  .btn {
+    @apply rounded-md border border-neutral-300 bg-white px-2.5 py-1.5 text-sm text-neutral-800 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply border-neutral-900 bg-neutral-900 text-white hover:bg-neutral-700;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+/* Rendered Markdown */
+.preview { font-size: 15px; line-height: 1.65; }
+.preview h1 { margin: 0 0 0.75rem; font-size: 1.6rem; font-weight: 600; }
+.preview h2 { margin: 1.5rem 0 0.5rem; font-size: 1.25rem; font-weight: 600; }
+.preview h3 { margin: 1.25rem 0 0.5rem; font-size: 1.05rem; font-weight: 600; }
+.preview p, .preview ul, .preview ol, .preview blockquote, .preview pre, .preview table { margin: 0 0 0.9rem; }
+.preview ul { list-style: disc; padding-left: 1.4rem; }
+.preview ol { list-style: decimal; padding-left: 1.4rem; }
+.preview a { color: #1d4ed8; text-decoration: underline; }
+.preview code { font-family: var(--font-mono), monospace; font-size: 0.9em; background: #f3f4f6; padding: 0.1em 0.3em; border-radius: 4px; }
+.preview pre { background: #f3f4f6; padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
+.preview pre code { background: none; padding: 0; }
+.preview blockquote { border-left: 3px solid #d4d4d4; padding-left: 1rem; color: #525252; }
+.preview table { border-collapse: collapse; }
+.preview th, .preview td { border: 1px solid #e5e5e5; padding: 0.3rem 0.6rem; }
+.preview hr { margin: 1.5rem 0; border: 0; border-top: 1px solid #e5e5e5; }
