@@ -12,7 +12,16 @@ Live demo: https://chiri-challenge.vercel.app
 - Works on the selection, or on the whole document when nothing is selected. A selection gets the surrounding text and the document outline as context.
 - Refine a suggestion with a follow-up instruction. The co-author keeps the earlier rounds as history. A failed refine keeps the previous suggestion.
 - Six quick actions (Improve, Shorten, Expand, Fix grammar, More formal, More casual) plus a free-text instruction box (⌘K).
-- The document is saved in the browser. A pending suggestion is never saved.
+- A pending suggestion is never saved or shared.
+
+### Collaboration
+- Every document has its own URL (`/d/<id>`). Opening `/` creates a new document and redirects to it. Anyone with the link can edit.
+- Real-time co-editing with live cursors and a count of who is editing (Yjs over Supabase Realtime).
+- Documents are saved as an append-only log of edits in Postgres, so concurrent writers never overwrite each other. The table can't be read in bulk: a document loads only through a function that needs its id.
+- AI suggestions stay private to the person who asked. They are reviewed in an overlay, and only the accepted result is written to the shared document, as one edit.
+- If a collaborator changed the target text while the co-author was working or during the review, the suggestion is not applied and a message asks to try again.
+- The document language is shared: accepting a translation switches it for everyone.
+- Without Supabase settings the app still runs, single-user and unsaved, with a "collaboration off" note.
 
 ### Languages
 - Interface in English, Brazilian Portuguese, Argentine Spanish, and Simplified Chinese. Defaults to the browser language and is remembered.
@@ -29,12 +38,15 @@ Live demo: https://chiri-challenge.vercel.app
 - Server errors are codes, shown in the interface language. Upstream details stay in the server logs.
 
 ### Development
+- Collaboration needs a Supabase project (`NEXT_PUBLIC_SUPABASE_URL` and its public key) and the table in `supabase/migrations/0001_doc_updates.sql`.
+- Known limits: no compaction of the edit log yet; a whole-document translation is refused if anyone typed during its review; the last half-second of typing before a tab closes may be lost if the browser drops the final save.
 - `MOCK_AI=1` runs without a key. Suggestions are deterministic fakes, and translations of the sample document are canned copies.
 - Deployed on Vercel. `OPENROUTER_API_KEY` is set as a production secret.
 
 ## Unreleased
 
 ### Added
+- Shared documents with a unique URL and real-time collaboration (see "Collaboration" above).
 - Translation cache. The server keeps up to 200 translations in instance memory, keyed by model, target language, and text. A repeat costs nothing and returns in milliseconds. Failed translations are never cached.
 - Translating back to the previous language restores the original text in the browser, with no API call.
 

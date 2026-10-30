@@ -12,8 +12,6 @@ export type Locale = (typeof LOCALES)[number]["id"];
 
 export const DEFAULT_LOCALE: Locale = "en-US";
 export const LOCALE_STORAGE_KEY = "coauthor.locale";
-/** Language of the document itself, not the interface. */
-export const DOC_LOCALE_STORAGE_KEY = "coauthor.docLocale";
 
 export function isLocale(value: unknown): value is Locale {
   return LOCALES.some((locale) => locale.id === value);
@@ -87,6 +85,11 @@ export type Messages = {
   placeholder: string;
   refinePlaceholder: string;
   nothing: string;
+  textChanged: string;
+  collabOff: string;
+  loadingDoc: string;
+  loadFailed: string;
+  editing(count: number): string;
   generic: string;
   documentTooLong: string;
   translationTooLong: string;
@@ -150,6 +153,11 @@ export const messages: Record<Locale, Messages> = {
     placeholder: "Or tell the co-author what to do…  (⌘K)",
     refinePlaceholder: "Refine: e.g. shorter, keep my examples…",
     nothing: "The co-author found nothing to change here.",
+    textChanged: "Someone changed this text while you were reviewing, so the suggestion wasn't applied. Ask again.",
+    collabOff: "Collaboration off: this document is not shared or saved",
+    loadingDoc: "Opening document…",
+    loadFailed: "Couldn't open this document. Check the link and try again.",
+    editing: (count) => (count === 1 ? "Only you here" : `${count} people editing`),
     generic: "Something went wrong.",
     documentTooLong: "The document is too long to edit in one go. Select a section instead.",
     translationTooLong: "The document is too long to translate in one go.",
@@ -196,6 +204,11 @@ export const messages: Record<Locale, Messages> = {
     placeholder: "Ou diga ao coautor o que fazer…  (⌘K)",
     refinePlaceholder: "Refinar: ex. mais curto, mantenha meus exemplos…",
     nothing: "O coautor não encontrou nada para mudar aqui.",
+    textChanged: "Alguém alterou este texto enquanto você revisava, então a sugestão não foi aplicada. Peça de novo.",
+    collabOff: "Colaboração desligada: este documento não é compartilhado nem salvo",
+    loadingDoc: "Abrindo documento…",
+    loadFailed: "Não foi possível abrir este documento. Confira o link e tente de novo.",
+    editing: (count) => (count === 1 ? "Só você aqui" : `${count} pessoas editando`),
     generic: "Algo deu errado.",
     documentTooLong: "O documento é longo demais para editar de uma vez. Selecione uma seção.",
     translationTooLong: "O documento é longo demais para traduzir de uma vez.",
@@ -242,6 +255,11 @@ export const messages: Record<Locale, Messages> = {
     placeholder: "O decile al coautor qué hacer…  (⌘K)",
     refinePlaceholder: "Afinar: por ej. más corto, dejá mis ejemplos…",
     nothing: "El coautor no encontró nada para cambiar acá.",
+    textChanged: "Alguien cambió este texto mientras revisabas, así que la sugerencia no se aplicó. Pedila de nuevo.",
+    collabOff: "Colaboración desactivada: este documento no se comparte ni se guarda",
+    loadingDoc: "Abriendo documento…",
+    loadFailed: "No se pudo abrir este documento. Revisá el enlace y probá de nuevo.",
+    editing: (count) => (count === 1 ? "Solo vos acá" : `${count} personas editando`),
     generic: "Algo salió mal.",
     documentTooLong: "El documento es demasiado largo para editarlo de una. Seleccioná una sección.",
     translationTooLong: "El documento es demasiado largo para traducirlo de una.",
@@ -288,6 +306,11 @@ export const messages: Record<Locale, Messages> = {
     placeholder: "或告诉合著者要做什么…  (⌘K)",
     refinePlaceholder: "再改：例如更短一些，保留我的例子…",
     nothing: "合著者认为这里无需修改。",
+    textChanged: "你审阅期间有人修改了这段文字，因此建议未被应用。请重新请求。",
+    collabOff: "协作已关闭：此文档不会共享或保存",
+    loadingDoc: "正在打开文档…",
+    loadFailed: "无法打开此文档。请检查链接后重试。",
+    editing: (count) => (count === 1 ? "只有你在这里" : `${count} 人正在编辑`),
     generic: "出了点问题。",
     documentTooLong: "文档太长，无法一次修改。请选中一个部分。",
     translationTooLong: "文档太长，无法一次翻译。",
