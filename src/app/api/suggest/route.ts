@@ -1,4 +1,6 @@
+import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
+import { translationLocale } from "@/lib/i18n";
 import { isModelId } from "@/lib/models";
 import {
   MAX_HISTORY,
@@ -16,6 +18,20 @@ export const maxDuration = 60;
 
 /** Stop serving the public demo before the shared key hits its cap. */
 const BUDGET_FLOOR_USD = 0.5;
+
+// ponytail: per-instance memory, FIFO-capped. Lost on deploy or a new instance;
+// move to Vercel Runtime Cache (getCache from @vercel/functions) if hit rate matters.
+const MAX_CACHED_TRANSLATIONS = 200;
+const translations = new Map<string, string>();
+
+function translationKey(model: string, locale: string, text: string) {
+  return createHash("sha256").update(`${model}\0${locale}\0${text}`).digest("hex");
+}
+
+function rememberTranslation(key: string, text: string) {
+  if (translations.size >= MAX_CACHED_TRANSLATIONS) translations.delete(translations.keys().next().value!);
+  translations.set(key, text);
+}
 
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => null)) as Partial<SuggestRequest> | null;
@@ -36,6 +52,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "missing_key" }, { status: 500 });
   }
 
+  // Same text, same language, same model: serve the earlier translation for free.
+  const into = input.history.length === 0 ? translationLocale(input.instruction) : null;
+  const cacheKey = into ? translationKey(input.model, into, target) : null;
+  const cached = cacheKey ? translations.get(cacheKey) : undefined;
+  if (cached !== undefined) return NextResponse.json({ text: cached, cost: 0, cached: true });
+
   try {
     const budget = await getBudget();
     if (budget.remaining !== null && budget.remaining < BUDGET_FLOOR_USD) {
@@ -46,7 +68,9 @@ export async function POST(req: Request) {
     }
     const { text, cost } = await chat(input.model, buildMessages(input), maxTokensFor(target));
     invalidateBudget();
-    return NextResponse.json({ text: cleanReply(text, target), cost });
+    const revised = cleanReply(text, target);
+    if (cacheKey && revised !== target) rememberTranslation(cacheKey, revised); // never cache a failed translation
+    return NextResponse.json({ text: revised, cost });
   } catch (e) {
     console.error("suggest: upstream failed", e); // raw detail stays in server logs
     return NextResponse.json({ error: "upstream_error" }, { status: 502 });

@@ -93,6 +93,8 @@ export default function App() {
   const [notice, setNotice] = useState<Notice>(null);
   const [spend, setSpend] = useState({ last: 0, total: 0 });
   const [budget, setBudget] = useState<BudgetState>(null);
+  /** "locale\0translated text" -> the text it was translated from, so translating back restores the original for free. */
+  const originals = useRef(new Map<string, string>());
   const copy = messages[locale];
 
   useEffect(() => {
@@ -145,16 +147,21 @@ export default function App() {
     const range = target ?? { from: 0, to: document.length };
     if (translating) setTranslateTo(options.translateTo!);
 
+    const original = translating ? originals.current.get(`${options.translateTo}\0${document}`) : undefined;
+
     setMode("loading");
     setNotice(null);
     try {
-      const res = await fetch("/api/suggest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ document, selection: target, instruction, model, history }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
+      const res =
+        original === undefined
+          ? await fetch("/api/suggest", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ document, selection: target, instruction, model, history }),
+            })
+          : null;
+      const data = res ? await res.json() : { text: original, cost: 0 };
+      if (res && !res.ok) {
         setNotice({
           kind: "http",
           status: res.status,
@@ -166,7 +173,8 @@ export default function App() {
       }
 
       setSpend((s) => ({ last: data.cost, total: s.total + data.cost }));
-      fetchBudget().then(setBudget);
+      if (res) fetchBudget().then(setBudget);
+      if (translating && data.text !== document) originals.current.set(`${docLocale}\0${data.text}`, document);
       const count = ed.propose(range, data.text);
       if (count === 0) {
         setNotice({ kind: "nothing" });
