@@ -20,33 +20,27 @@ const BUDGET_FLOOR_USD = 0.5;
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => null)) as Partial<SuggestRequest> | null;
   const problem = validate(body);
-  if (problem) return NextResponse.json({ error: problem }, { status: 400 });
+  if (problem) return NextResponse.json({ error: "invalid_request", detail: problem }, { status: 400 });
   const input = body as SuggestRequest;
 
   const { target, whole } = splitDocument(input.document, input.selection);
   if (whole && target.length > MAX_WHOLE_DOC_CHARS) {
-    return NextResponse.json(
-      { error: "The document is too long to edit in one go. Select a section instead." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "document_too_long" }, { status: 400 });
   }
 
   if (process.env.MOCK_AI === "1") {
     await new Promise((r) => setTimeout(r, 600));
-    return NextResponse.json({ text: mockRewrite(target, input.instruction), cost: 0 });
+    return NextResponse.json({ text: cleanReply(mockRewrite(target, input.instruction, whole), target), cost: 0 });
   }
   if (!process.env.OPENROUTER_API_KEY) {
-    return NextResponse.json(
-      { error: "OPENROUTER_API_KEY is not set. Add it to .env.local, or run with MOCK_AI=1." },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "missing_key" }, { status: 500 });
   }
 
   try {
     const budget = await getBudget();
     if (budget.remaining !== null && budget.remaining < BUDGET_FLOOR_USD) {
       return NextResponse.json(
-        { error: `The demo budget is used up ($${budget.remaining.toFixed(2)} left). Run it locally with your own key.` },
+        { error: "budget_exhausted", remaining: budget.remaining },
         { status: 402 },
       );
     }
@@ -54,8 +48,8 @@ export async function POST(req: Request) {
     invalidateBudget();
     return NextResponse.json({ text: cleanReply(text, target), cost });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Upstream error";
-    return NextResponse.json({ error: message }, { status: 502 });
+    console.error("suggest: upstream failed", e); // raw detail stays in server logs
+    return NextResponse.json({ error: "upstream_error" }, { status: 502 });
   }
 }
 

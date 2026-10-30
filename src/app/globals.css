@@ -5,8 +5,9 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* CJK fallbacks regardless of UI locale: the document can be Chinese under any UI. */
 body {
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-sans), "PingFang SC", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
 }
 
 @layer components {

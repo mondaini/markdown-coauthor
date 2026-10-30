@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { QUICK_ACTIONS, type Messages } from "@/lib/i18n";
 import { MODELS, type ModelId } from "@/lib/models";
 
 export type Mode = "idle" | "loading" | "reviewing";
@@ -11,6 +12,7 @@ type Props = {
   selectionWords: number;
   changeCount: number;
   model: ModelId;
+  copy: Messages;
   error: string | null;
   onModelChange(id: ModelId): void;
   /** In idle mode: ask for a suggestion. In reviewing mode: refine the current one. */
@@ -19,17 +21,8 @@ type Props = {
   onRejectAll(): void;
 };
 
-const QUICK_ACTIONS: [label: string, instruction: string][] = [
-  ["Improve", "Improve clarity and flow without changing the meaning."],
-  ["Shorten", "Make this more concise. Cut filler, keep every point."],
-  ["Expand", "Expand this with one or two concrete details or examples."],
-  ["Fix grammar", "Fix spelling, grammar and punctuation only."],
-  ["More formal", "Rewrite in a more formal, professional tone."],
-  ["More casual", "Rewrite in a relaxed, conversational tone."],
-];
-
 export default function AiBar(props: Props) {
-  const { mode, selectionWords, changeCount, model, error, onModelChange, onRun, onAcceptAll, onRejectAll } = props;
+  const { mode, selectionWords, changeCount, model, copy, error, onModelChange, onRun, onAcceptAll, onRejectAll } = props;
   const [draft, setDraft] = useState("");
   const input = useRef<HTMLInputElement>(null);
   const busy = mode === "loading";
@@ -54,34 +47,34 @@ export default function AiBar(props: Props) {
   }
 
   const target = reviewing
-    ? `${changeCount} suggested ${changeCount === 1 ? "change" : "changes"}`
+    ? copy.changes(changeCount)
     : selectionWords > 0
-      ? `Selection, ${selectionWords} ${selectionWords === 1 ? "word" : "words"}`
-      : "Whole document";
+      ? copy.selection(selectionWords)
+      : copy.wholeDocument;
 
   return (
     <div className={`border-b px-5 py-2.5 ${reviewing ? "bg-amber-50 border-amber-200" : "bg-neutral-50 border-neutral-200"}`}>
       <div className="flex flex-wrap items-center gap-2">
         <span className={`text-xs font-medium rounded-full px-2.5 py-1 ${reviewing ? "bg-amber-200 text-amber-900" : "bg-neutral-200 text-neutral-700"}`}>
-          {busy ? "Thinking…" : target}
+          {busy ? copy.thinking : target}
         </span>
 
         {reviewing && (
           <>
             <button type="button" onClick={onAcceptAll} disabled={busy} className="btn btn-primary">
-              Accept all
+              {copy.acceptAll}
             </button>
             <button type="button" onClick={onRejectAll} disabled={busy} className="btn">
-              Reject all
+              {copy.rejectAll}
             </button>
-            <span className="text-xs text-neutral-500">or review each change inline, or refine:</span>
+            <span className="text-xs text-neutral-500">{copy.reviewHint}</span>
           </>
         )}
 
         {!reviewing &&
-          QUICK_ACTIONS.map(([label, instruction]) => (
-            <button key={label} type="button" onClick={() => onRun(instruction)} disabled={busy} className="btn">
-              {label}
+          QUICK_ACTIONS.map((action) => (
+            <button key={action.id} type="button" onClick={() => onRun(action.instruction)} disabled={busy} className="btn">
+              {copy.quick[action.id]}
             </button>
           ))}
 
@@ -97,11 +90,11 @@ export default function AiBar(props: Props) {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             disabled={busy}
-            placeholder={reviewing ? "Refine: e.g. shorter, keep my examples…" : "Or tell the co-author what to do…  (⌘K)"}
+            placeholder={reviewing ? copy.refinePlaceholder : copy.placeholder}
             className="flex-1 rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-neutral-500"
           />
           <button type="submit" disabled={busy || !draft.trim()} className="btn btn-primary">
-            {reviewing ? "Refine" : "Go"}
+            {reviewing ? copy.refine : copy.go}
           </button>
         </form>
 
@@ -109,12 +102,12 @@ export default function AiBar(props: Props) {
           value={model}
           onChange={(e) => onModelChange(e.target.value as ModelId)}
           disabled={busy}
-          title={MODELS.find((m) => m.id === model)?.price}
+          title={copy.price[model]}
           className="rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
         >
           {MODELS.map((m) => (
             <option key={m.id} value={m.id}>
-              {m.tier}: {m.label}
+              {copy.tier[m.tier]}: {m.label}
             </option>
           ))}
         </select>
