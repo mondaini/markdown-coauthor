@@ -23,6 +23,7 @@ You receive the writer's instruction, the exact text to work on (the target) and
 Rules:
 - Return ONLY the revised target text. No preamble, no explanation, no code fences.
 - Change only what the instruction calls for. Keep the writer's voice, facts, structure and Markdown formatting unless asked otherwise.
+- If the instruction asks for a translation, rewrite the whole target in that language.
 - Keep the target's leading and trailing whitespace and line breaks so it drops back into place.
 - If the instruction does not apply to this text, return the target unchanged.`;
 
@@ -51,7 +52,7 @@ export function buildMessages(req: SuggestRequest): Message[] {
   const what = whole ? "document" : "target";
   const firstInstruction = req.history[0]?.instruction ?? req.instruction;
 
-  const parts = [`<instruction>\n${firstInstruction}\n</instruction>`];
+  const parts: string[] = [];
   if (!whole) {
     const headings = outline(req.document);
     if (headings) parts.push(`<document_outline>\n${headings}\n</document_outline>`);
@@ -59,6 +60,8 @@ export function buildMessages(req: SuggestRequest): Message[] {
   }
   parts.push(`<target>\n${target}\n</target>`);
   if (!whole && after) parts.push(`<context_after>\n${after}\n</context_after>`);
+  // Instruction goes after the text: with a long target first, Haiku obeyed only the closing line and returned it unchanged.
+  parts.push(`<instruction>\n${firstInstruction}\n</instruction>`);
   parts.push(`Return only the revised ${what}.`);
 
   const messages: Message[] = [
