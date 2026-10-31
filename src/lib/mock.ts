@@ -1,12 +1,12 @@
 import { translationLocale, type Locale } from "@/lib/i18n";
 import { SAMPLE_DOC } from "@/lib/sample";
 
-// ponytail: fake co-author for MOCK_AI=1 so UI and diff work costs $0.
+// Note: fake co-author for MOCK_AI=1 so UI and diff work costs $0.
 // Deterministic, produces visible diffs on ordinary prose.
 
 /** Full stand-ins for the sample document, so mock translation is obvious. */
 const CANON: Record<Locale, string> = {
-  // ponytail: SAMPLE_DOC ends in "\n"; fine, matching is by first line and output takes the target's trailing whitespace.
+  // Note: SAMPLE_DOC ends in "\n"; fine, matching is by first line and output takes the target's trailing whitespace.
   "en-US": SAMPLE_DOC,
   "pt-BR": `# Plano de lanÃ§amento do novo fluxo de onboarding
 
@@ -79,7 +79,7 @@ La lista puede parecer condescendiente para los usuarios con experiencia. TendrÃ
 const firstLine = (text: string) => text.split("\n", 1)[0];
 
 function mockTranslation(target: string, locale: Locale, whole: boolean) {
-  // ponytail: match on the H1 so an edited sample still gets the canned translation; other text only gets a marker.
+  // Note: match on the H1 so an edited sample still gets the canned translation; other text only gets a marker.
   // Only for the whole document: a selection that starts with the H1 must not become the full canned doc.
   const known = whole && (Object.keys(CANON) as Locale[]).some((id) => firstLine(CANON[id]) === firstLine(target));
   if (known) return CANON[locale];

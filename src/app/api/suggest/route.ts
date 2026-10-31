@@ -19,7 +19,7 @@ export const maxDuration = 60;
 /** Stop serving the public demo before the shared key hits its cap. */
 const BUDGET_FLOOR_USD = 0.5;
 
-// ponytail: per-instance memory, FIFO-capped. Lost on deploy or a new instance;
+// Trade-off: per-instance memory, FIFO-capped. Lost on deploy or a new instance;
 // move to Vercel Runtime Cache (getCache from @vercel/functions) if hit rate matters.
 const MAX_CACHED_TRANSLATIONS = 200;
 const translations = new Map<string, string>();

@@ -72,7 +72,7 @@ export async function openDoc(id: string): Promise<SharedDoc> {
   if (rows.length) Y.applyUpdate(ydoc, Y.mergeUpdates(rows.map(fromBase64)), FROM_DB);
 
   // Each client saves only its own edits, so every update is stored once.
-  // ponytail: an edit made in the last FLUSH_MS before the tab dies may be lost if the keepalive send fails.
+  // Trade-off: an edit made in the last FLUSH_MS before the tab dies may be lost if the keepalive send fails.
   let pending: Uint8Array[] = [];
   let timer: ReturnType<typeof setTimeout> | null = null;
   const take = () => {

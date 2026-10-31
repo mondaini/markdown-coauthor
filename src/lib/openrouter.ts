@@ -33,7 +33,7 @@ export type Budget = {
   remaining: number | null;
 };
 
-// ponytail: module-level 30s cache; Fluid Compute reuses instances so it mostly hits.
+// Note: module-level 30s cache; Fluid Compute reuses instances so it mostly hits.
 let cached: { at: number; budget: Budget } | null = null;
 
 export async function getBudget(): Promise<Budget> {

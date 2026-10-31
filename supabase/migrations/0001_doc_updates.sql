@@ -1,6 +1,6 @@
 -- Append-only log of Yjs updates per shared document.
 -- Yjs updates merge in any order, so concurrent writers never overwrite each other.
--- ponytail: no compaction; load time grows with edit history. Add a route that merges a
+-- Trade-off: no compaction; load time grows with edit history. Add a route that merges a
 -- document's rows into one and deletes the rest when that starts to matter.
 create table if not exists public.doc_updates (
   id bigserial primary key,
