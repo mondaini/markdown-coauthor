@@ -2,7 +2,7 @@
 
 A Markdown editor with an AI co-author. Select text (or nothing, for the whole document), ask for a change, and review the result as tracked edits.
 
-Live demo: https://chiri-challenge.vercel.app
+Live demo: https://markdown-coauthor.vercel.app
 
 ## What is implemented
 

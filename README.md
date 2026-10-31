@@ -2,7 +2,7 @@
 
 Write Markdown, select some text (or nothing, for the whole document), ask for a change, and review the AI's suggestion as tracked edits before it touches your text. Documents have shareable links and can be edited by several people at once.
 
-**Live demo:** https://chiri-challenge.vercel.app · **Full feature list and history:** [CHANGELOG.md](CHANGELOG.md)
+**Live demo:** https://markdown-coauthor.vercel.app · **Full feature list and history:** [CHANGELOG.md](CHANGELOG.md)
 
 ## How to run it
 
